@@ -1,29 +1,70 @@
-name: Deploy Backend to Azure Container Apps
+name: Deploy to Azure Container Apps
 
 on:
   push:
-    paths:
-      - 'backend/**'
     branches:
-      - main
+      - main  # De pipeline start als je naar 'main' pusht
 
 jobs:
-  build-and-deploy:
+  # --- JOB 1: BACKEND ---
+  build-and-deploy-backend:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Log in to Azure Container Registry
+        uses: azure/docker-login@v1
+        with:
+          login-server: crmeuzeit.azurecr.io
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Build and push Backend Image
+        run: |
+          docker build -t crmeuzeit.azurecr.io/meuzeit-backend:${{ github.sha }} ./backend
+          docker push crmeuzeit.azurecr.io/meuzeit-backend:${{ github.sha }}
 
       - name: Log in to Azure
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Build and deploy Container App
+      - name: Deploy Backend to Container App
         uses: azure/container-apps-deploy-action@v1
         with:
-          appSourcePath: ${{ github.workspace }}/backend
           containerAppName: ca-meuzeit-backend
           resourceGroup: rg-meuzeit-infra
-          # Voeg deze regels toe:
-          acrName: crmeuzeit
-          containerAppEnvironment: mdb-meuzeit-env
+          imageToDeploy: crmeuzeit.azurecr.io/meuzeit-backend:${{ github.sha }}
+
+  # --- JOB 2: FRONTEND ---
+  build-and-deploy-frontend:
+    runs-on: ubuntu-latest
+    needs: build-and-deploy-backend # Hij start pas als de backend klaar is (veiligheid)
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Log in to Azure Container Registry
+        uses: azure/docker-login@v1
+        with:
+          login-server: crmeuzeit.azurecr.io
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Build and push Frontend Image
+        run: |
+          docker build -t crmeuzeit.azurecr.io/meuzeit-frontend:${{ github.sha }} ./frontend
+          docker push crmeuzeit.azurecr.io/meuzeit-frontend:${{ github.sha }}
+
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy Frontend to Container App
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          containerAppName: ca-meuzeit-frontend
+          resourceGroup: rg-meuzeit-infra
+          imageToDeploy: crmeuzeit.azurecr.io/meuzeit-frontend:${{ github.sha }}
