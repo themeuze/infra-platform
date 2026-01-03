@@ -1,8 +1,10 @@
 import React from 'react';
 
 async function getExpertise() {
-  // We roepen hier jouw backend 'menukaart' aan
-  const res = await fetch('http://127.0.0.1:8000/api/expertise', { cache: 'no-store' });
+  // Hij pakt nu de URL uit de Azure settings, of valt terug op localhost voor lokaal testen
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+  const res = await fetch(`${apiUrl}/api/expertise`, { cache: 'no-store' });
+  
   if (!res.ok) throw new Error('Oeps! De backend is niet bereikbaar');
   return res.json();
 }
