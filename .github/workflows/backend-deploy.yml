@@ -3,7 +3,7 @@ name: Deploy Backend to Azure Container Apps
 on:
   push:
     paths:
-      - 'backend/**' # Alleen starten als er iets in de backend verandert
+      - 'backend/**'
     branches:
       - main
 
@@ -24,3 +24,6 @@ jobs:
           appSourcePath: ${{ github.workspace }}/backend
           containerAppName: ca-meuzeit-backend
           resourceGroup: rg-meuzeit-infra
+          # Voeg deze regels toe:
+          acrName: crmeuzeit99
+          containerAppEnvironment: mdb-meuzeit-env
