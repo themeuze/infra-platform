@@ -18,7 +18,7 @@ ENV NEXT_TELEMETRY_DISABLED 1
 RUN npm run build
 
 # 3. De runner: De uiteindelijke container die gaat draaien
-FROM node:18-alpine AS runner
+FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
