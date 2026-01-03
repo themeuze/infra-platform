@@ -25,5 +25,5 @@ jobs:
           containerAppName: ca-meuzeit-backend
           resourceGroup: rg-meuzeit-infra
           # Voeg deze regels toe:
-          acrName: crmeuzeit99
+          acrName: crmeuzeit
           containerAppEnvironment: mdb-meuzeit-env
